@@ -39,5 +39,9 @@ pub mod ffi {
         /// true if context init succeeded, false otherwise.
         /// Note: JVM init always happens regardless of return value.
         unsafe fn init_android_context(jvm: *mut JavaVM, context: usize) -> bool;
+
+        /// Where encoder-released hardware buffer frames are reported (see android_ahb.h).
+        /// `handler` is an `AhbReleaseHandler` function pointer, `user` is passed back to it.
+        unsafe fn set_ahb_release_handler(handler: usize, user: usize);
     }
 }

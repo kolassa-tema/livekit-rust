@@ -202,3 +202,12 @@ pub mod android {
         livekit::webrtc::android::initialize_android_context(&vm, &context)
     }
 }
+
+/// Android: where the hardware encoder reports hardware buffer frames it has finished with.
+/// `handler` is `void (*)(void* user, void* hardware_buffer, int fence_fd)`; the fence fd, if
+/// not -1, is behind the encoder GPU reads and belongs to the handler.
+#[cfg(target_os = "android")]
+#[no_mangle]
+pub extern "C" fn livekit_ffi_set_hardware_buffer_release_handler(handler: usize, user: usize) {
+    livekit::webrtc::android::set_hardware_buffer_release_handler(handler, user);
+}

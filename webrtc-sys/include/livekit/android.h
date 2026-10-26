@@ -50,6 +50,10 @@ void init_android(JavaVM* jvm);
 ///         Note: JVM init (init_android) always happens regardless of return value.
 bool init_android_context(JavaVM* jvm, uintptr_t context);
 
+/// Registers the callback for hardware buffer frames the encoder has released
+/// (an AhbReleaseHandler, see android_ahb.h, passed as integers for the bridge).
+void set_ahb_release_handler(size_t handler, size_t user);
+
 std::unique_ptr<webrtc::VideoEncoderFactory> CreateAndroidVideoEncoderFactory();
 std::unique_ptr<webrtc::VideoDecoderFactory> CreateAndroidVideoDecoderFactory();
 

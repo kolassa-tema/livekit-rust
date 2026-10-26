@@ -63,3 +63,8 @@ pub fn initialize_android_context(vm: &jni::JavaVM, context: &JObject) -> bool {
         )
     }
 }
+
+/// Registers the callback the encoder side calls when it is done with a hardware buffer frame.
+pub fn set_hardware_buffer_release_handler(handler: usize, user: usize) {
+    unsafe { sys_android::set_ahb_release_handler(handler, user) }
+}

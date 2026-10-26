@@ -262,6 +262,10 @@ jobject GetAhbSharedEglContext(JNIEnv* env) {
   return context;
 }
 
+void set_ahb_release_handler(size_t handler, size_t user) {
+  SetAhbReleaseHandler(reinterpret_cast<AhbReleaseHandler>(handler), reinterpret_cast<void*>(user));
+}
+
 void SetAhbReleaseHandler(AhbReleaseHandler handler, void* user) {
   std::lock_guard<std::mutex> lock(g_mutex);
   g_release_handler = handler;
