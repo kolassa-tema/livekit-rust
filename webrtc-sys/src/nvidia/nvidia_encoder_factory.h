@@ -33,8 +33,6 @@ class NvidiaVideoEncoderFactory : public VideoEncoderFactory {
   }
 
  private:
-  static bool IsAv1Supported();
-
   std::vector<SdpVideoFormat> supported_formats_;
   livekit_ffi::CudaContext* cu_context_ = nullptr;
 };

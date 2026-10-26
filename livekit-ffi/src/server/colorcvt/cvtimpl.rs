@@ -34,6 +34,9 @@ pub unsafe fn cvt(
         proto::VideoBufferType::I444 => cvt_i444(buffer, dst_type, flip_y),
         proto::VideoBufferType::I010 => cvt_i010(buffer, dst_type, flip_y),
         proto::VideoBufferType::Nv12 => cvt_nv12(buffer, dst_type, flip_y),
+        proto::VideoBufferType::NativeAndroidAhb => Err(FfiError::InvalidRequest(
+            "a hardware buffer frame lives on the GPU and cannot be converted on the CPU".into(),
+        )),
     }
 }
 

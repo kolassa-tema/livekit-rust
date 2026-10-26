@@ -22,7 +22,6 @@
 #include <deque>
 #include <memory>
 #include <optional>
-#include <span>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -103,7 +102,7 @@ struct PacketTrailerMetadata {
 ///
 /// Shared by the codec-agnostic trailer path and the AV1 OBU path.
 std::optional<PacketTrailerMetadata> ParseTrailerPayload(
-    std::span<const uint8_t> trailer);
+    webrtc::ArrayView<const uint8_t> trailer);
 
 /// Frame transformer that appends/extracts packet trailers.
 /// This transformer can be used standalone or in conjunction with e2ee.
@@ -194,7 +193,7 @@ class PacketTrailerTransformer : public webrtc::FrameTransformerInterface {
 
   /// Append frame metadata trailer to frame data
   std::vector<uint8_t> AppendTrailer(
-      std::span<const uint8_t> data,
+      webrtc::ArrayView<const uint8_t> data,
       uint64_t user_timestamp,
       uint32_t frame_id,
       const std::vector<uint8_t>& user_data,
@@ -202,7 +201,7 @@ class PacketTrailerTransformer : public webrtc::FrameTransformerInterface {
 
   /// Extract and remove frame metadata trailer from frame data
   std::optional<PacketTrailerMetadata> ExtractTrailer(
-      std::span<const uint8_t> data,
+      webrtc::ArrayView<const uint8_t> data,
       std::vector<uint8_t>& out_data,
       bool is_av1);
 

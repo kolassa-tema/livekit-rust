@@ -20,19 +20,11 @@ TARGET_DIR = "${CARGO_MAKE_CRATE_TARGET_DIRECTORY}"
 SPM_NAME = "LiveKitUniFFI"
 NPM_NAME = "@livekit/uniffi"
 DART_PACKAGE_NAME = "livekit_uniffi"
-# Rendered into pubspec.yaml by dart-generate-manifest. Fail closed: every
-# profile gets `publish_to: none` (dev packages embed a host dylib and must
-# never reach pub.dev), and only an explicit release build clears it so
-# `dart pub publish` accepts the package.
-PUBSPEC_PUBLISH_TO = "none"
 
 # Per-release directory holding the cdylib archives published by
 # .github/workflows/uniffi-cdylib.yml. Downloaders append
 # `/v<version>/build-<triple>.zip` (and a `.sha256` sidecar).
 CDYLIB_DOWNLOAD_BASE_URL = "https://github.com/livekit/rust-sdks/releases/download/livekit-uniffi"
-
-[env.release]
-PUBSPEC_PUBLISH_TO = ""
 
 [config]
 skip_core_tasks = true
@@ -72,23 +64,15 @@ ANDROID_AAR_BASENAME = "livekit-uniffi-android-release"
 extend = "android-shared"
 install_crate = { crate_name = "cargo-ndk", binary = "cargo-ndk", test_arg = "--help" }
 script_runner = "@shell"
-# The profile switch lives in the script, not in [tasks.build-android.env]: the
-# per-arch tasks below set `env = { TARGET = ... }`, and cargo-make's `extend`
-# *replaces* the env map instead of merging it — anything declared here would be
-# silently dropped, producing a debug .so under `--profile release`.
 script = """
 echo "TARGET: ${TARGET}"
 rustup target add "${TARGET}"
-
-release_flag=""
-if [ "${CARGO_MAKE_PROFILE}" = "release" ]; then
-  release_flag="--release"
-  # panic = "abort" in release, so unwind tables are dead weight.
-  export RUSTFLAGS="-C force-unwind-tables=no"
-fi
-
-cargo ndk --target "${TARGET}" build ${release_flag}
+cargo ndk --target "${TARGET}" build ${ANDROID_RELEASE_FLAG}
 """
+
+[tasks.build-android.env]
+ANDROID_RELEASE_FLAG = { value = "--release", condition = { profiles = ["release"] } }
+RUSTFLAGS = { value = "-C force-unwind-tables=no", condition = { profiles = ["release"] } }
 
 # MARK: - Build, specific platforms
 
@@ -168,22 +152,16 @@ dependencies = ["build", "locate-lib"]
 script_runner = "@duckscript"
 script = """
 out_dir = join_path ${PACKAGES_DIR} ${LANG}
-# `--features cli` builds the bindgen bin (gated off library builds so the
-# shipped cdylib/staticlib don't carry uniffi's CLI machinery).
-exec cargo run --features cli --bin uniffi-bindgen generate \
+exec cargo run --bin uniffi-bindgen generate \
     --language ${LANG} \
     --out-dir ${out_dir} \
     --library ${LIB_PATH}
 """
 
-[tasks.install-tera]
-private = true
-install_crate = { crate_name = "teracli", binary = "tera", test_arg = "--help" }
-install_crate_args = ["--git", "https://github.com/chevdor/tera-cli", "--tag", "v0.5.0"]
-
 [tasks.tera]
 private = true
-dependencies = ["install-tera"]
+install_crate = { crate_name = "teracli", binary = "tera", test_arg = "--help" }
+install_crate_args = ["--git", "https://github.com/chevdor/tera-cli"]
 command = "tera"
 
 [tasks.bindgen]
@@ -318,12 +296,6 @@ SWIFT_DSYMS_FLAG = { value = "--debug-symbols", condition = { profiles = ["relea
 # to each per-arch .dylib at target/<arch>/release/deps/lib<name>.dylib.dSYM.
 CARGO_PROFILE_RELEASE_DEBUG = { value = "limited", condition = { profiles = ["release"] } }
 CARGO_PROFILE_RELEASE_SPLIT_DEBUGINFO = { value = "packed", condition = { profiles = ["release"] } }
-# The workspace dev profile is `debug = "line-tables-only"` for build speed,
-# but the debug xcframework exists for lldb Rust-side debugging (variable
-# inspection needs full DWARF — see support/swift/DEBUGGING.md). Restore it
-# here so `swift-package-debug` keeps its promise regardless of the workspace
-# default.
-CARGO_PROFILE_DEV_DEBUG = { value = "full", condition = { profiles = ["development"] } }
 # Space-separated platform list, overridable for partial builds (e.g. the
 # macos-only debug flow below).
 SPM_PLATFORMS = { value = "macos ios maccatalyst visionos tvos", condition = { env_not_set = ["SPM_PLATFORMS"] } }
@@ -331,9 +303,7 @@ SPM_PLATFORMS = { value = "macos ios maccatalyst visionos tvos", condition = { e
 [tasks.swift-xcframework]
 private = true
 install_crate = { crate_name = "cargo-swift", binary = "cargo-swift", test_arg = "--help" }
-# Multi-crate framework fix, on the fork's `fix/multi-crate-framework` branch
-# (open upstream as antoniusnaumann/cargo-swift#101).
-install_crate_args = ["--git", "https://github.com/livekit/cargo-swift.git", "--rev", "439269c4ff5097bcca7a0a7588f1adebd95edc06"]
+install_crate_args = ["--git", "https://github.com/livekit/cargo-swift.git", "--rev", "f94e76675b9524e71be028c4b03a51163d6a5c28"]
 script_runner = "@shell"
 script = """
 export IPHONEOS_DEPLOYMENT_TARGET=13.0
@@ -355,7 +325,8 @@ $platform_flags \
 --lib-type dynamic \
 --privacy-manifest ${SUPPORT_DIR}/swift/PrivacyInfo.xcprivacy \
 --exclude-arch x86_64-apple-tvos \
-${SWIFT_RELEASE_FLAG}
+${SWIFT_RELEASE_FLAG} \
+${SWIFT_DSYMS_FLAG}
 """
 
 # Print a size breakdown of the iPhone-arm64 framework binary (the slice that
@@ -400,7 +371,7 @@ echo
 # are ~2× larger by construction (two archs in one Mach-O) and shouldn't be
 # the metric. Override the limit per release with SPM_SIZE_LIMIT_BYTES.
 [tasks.swift-check-size.env]
-SPM_SIZE_LIMIT_BYTES = { value = "1179648", condition = { env_not_set = ["SPM_SIZE_LIMIT_BYTES"] } }
+SPM_SIZE_LIMIT_BYTES = { value = "723467", condition = { env_not_set = ["SPM_SIZE_LIMIT_BYTES"] } }
 
 [tasks.swift-check-size]
 private = true
@@ -453,7 +424,7 @@ SPM_HOSTING_REPO = { value = "livekit/livekit-uniffi-xcframework", condition = {
 
 [tasks.swift-generate-manifest]
 private = true
-dependencies = ["install-tera"]
+install_crate = { crate_name = "tera-cli", binary = "tera", test_arg = "--version" }
 script_runner = "@shell"
 script = """
 # Derive URL and read the checksum produced by swift-zip-xcframework. In dev
@@ -466,15 +437,9 @@ else
   export SPM_CHECKSUM="0000000000000000000000000000000000000000000000000000000000000000"
 fi
 
-tera --env-only \
-    -t ${SUPPORT_DIR}/${LANG}/Package.swift.tera \
-    -o ${SPM_NAME}/Package.swift
-tera --env-only \
-    -t ${SUPPORT_DIR}/${LANG}/Package@swift-6.2.swift.tera \
-    -o ${SPM_NAME}/Package@swift-6.2.swift
-tera --env-only \
-    -t ${SUPPORT_DIR}/${LANG}/${SPM_NAME}.podspec.tera \
-    -o ${SPM_NAME}/${SPM_NAME}.podspec
+tera --env --file ${SUPPORT_DIR}/${LANG}/Package.swift.tera > ${SPM_NAME}/Package.swift
+tera --env --file ${SUPPORT_DIR}/${LANG}/Package@swift-6.2.swift.tera > ${SPM_NAME}/Package@swift-6.2.swift
+tera --env --file ${SUPPORT_DIR}/${LANG}/${SPM_NAME}.podspec.tera > ${SPM_NAME}/${SPM_NAME}.podspec
 cp ${CARGO_MAKE_WORKSPACE_WORKING_DIRECTORY}/LICENSE ${SPM_NAME}/LICENSE
 rm -f ${SPM_NAME}/.checksum
 """
@@ -538,18 +503,13 @@ run_task = "swift-package-flow"
 #              → same AAR flow, published to ~/.m2/repository (Maven Local).
 
 # Enforce a size budget on the arm64-v8a native library an Android user actually
-# downloads. arm64-v8a is the primary shipping arch, so it's the most meaningful
+# downloads. arm64-v8a is the primary shipping arch, so it's the most meaningful 
 # proxy for "how much does this dep cost an end user".
 # Measured on the stripped .so inside the release AAR (AGP strips debug symbols
 # during assemble; the raw target/ artifact is larger and not what ships).
 # Override the limit per release with ANDROID_SIZE_LIMIT_BYTES.
-#
-# 1536 KiB as of data streams v2: the async foreign-trait machinery, the stream-closed and
-# open-stream-count surface, and trailer encryption checks put the arm64-v8a slice at 1490 KiB
-# (measured 2026-08; cargo's `strip = "symbols"` is already applied, so AGP's strip pass has
-# nothing further to remove).
 [tasks.android-check-size.env]
-ANDROID_SIZE_LIMIT_BYTES = { value = "1572864", condition = { env_not_set = ["ANDROID_SIZE_LIMIT_BYTES"] } }
+ANDROID_SIZE_LIMIT_BYTES = { value = "877918", condition = { env_not_set = ["ANDROID_SIZE_LIMIT_BYTES"] } }
 
 [tasks.android-check-size]
 extend = "android-shared"
@@ -620,23 +580,11 @@ cp "${aar}" "${out_dir}/"
 echo "AAR: ${out_dir}/${ANDROID_AAR_BASENAME}.aar"
 """
 
-# Library-mode bindgen reads UNIFFI_META_* symbols from a cdylib, so it needs a
-# *host* one — but cargo-make env vars leak across tasks, so the TARGET set by
-# the preceding per-arch Android builds would otherwise make `build` cross-
-# compile (with the host linker: "cannot find -llog"). Pin TARGET back to the
-# host, and keep symbols: the release profile's `strip = "symbols"` removes the
-# metadata on Linux. Same wrapper pattern as `bindgen-dart` — a task's own env
-# only applies once its dependencies run, hence run_task.
-[tasks.android-bindgen-kotlin]
-private = true
-env = { TARGET = "${CARGO_MAKE_RUST_TARGET_TRIPLE}", CARGO_PROFILE_RELEASE_STRIP = "false" }
-run_task = "bindgen-kotlin"
-
 [tasks.android-package-flow]
 private = true
 dependencies = [
     "build-android-platforms",
-    "android-bindgen-kotlin",
+    "bindgen-kotlin",
     "android-copy-jniLibs",
     "android-assemble",
     "android-check-size",
@@ -697,33 +645,14 @@ exec cargo run --features dart-bindgen --bin uniffi-bindgen-dart -- \
 """
 
 # Assemble a consumable Dart package around the generated bindings: idiomatic
-# lib/ layout, a pubspec, the Native Assets build hook, package metadata, and
-# (dev only) the locally built dynamic library so a consumer can load it
-# without a download step. Release builds omit the dylib, so consumers use the
-# hook's download mode against the release assets.
+# lib/ layout, a pubspec, the Native Assets build hook, and (dev) the locally
+# built dynamic library so a consumer can load it without a download step.
 #
 #   packages/dart/
 #     pubspec.yaml          (from support/dart/pubspec.yaml.tera)
 #     lib/livekit_uniffi.dart
 #     hook/build.dart       (from support/dart/hook/build.dart)
-#     LICENSE, README.md, CHANGELOG.md
-#     liblivekit_uniffi.<ext>  (dev only: copied local build)
-#
-# Publishing note: pub builds its archive from git's file listing and this
-# whole tree is gitignored, so `dart pub publish` must run from a copy of
-# packages/dart placed outside the repository (uniffi-dart-publish.yml does
-# this; do the same for a manual publish).
-
-# Start from a clean slate: leftovers from a previous build with a different
-# profile would otherwise survive into this one. The dev-profile dylib is the
-# dangerous case, a release package must never carry it (the build hook
-# prefers a package-root library over download, on every platform).
-[tasks.dart-clean]
-private = true
-script_runner = "@shell"
-script = """
-rm -rf ${PACKAGES_DIR}/${LANG}
-"""
+#     liblivekit_uniffi.<ext>  (dev: copied local build)
 
 [tasks.dart-move-code-into-lib]
 private = true
@@ -752,29 +681,12 @@ extend = "tera"
 args = ["--env-only", "-t", "${SUPPORT_DIR}/${LANG}/hook/build.dart.tera", "-o", "${PACKAGES_DIR}/${LANG}/hook/build.dart"]
 
 # Dev delivery: copy the locally built dylib into the package root, where the
-# build hook resolves it. Development profile only. A published package must
-# not contain the host dylib, its consumers get the right library per target
-# from the hook's download mode instead.
+# build hook resolves it. A release flow would replace this with a download.
 [tasks.dart-copy-lib]
 private = true
-condition = { profiles = ["development"] }
 script_runner = "@shell"
 script = """
 cp ${LIB_PATH} ${PACKAGES_DIR}/${LANG}/
-"""
-
-# Package metadata: pub.dev requires a LICENSE and scores README/CHANGELOG.
-# The LICENSE comes from the repo root (same source as the Swift package),
-# the changelog from the crate, and the README and analysis options from
-# support/dart.
-[tasks.dart-copy-meta]
-private = true
-script_runner = "@shell"
-script = """
-cp ${CARGO_MAKE_WORKSPACE_WORKING_DIRECTORY}/LICENSE ${PACKAGES_DIR}/${LANG}/
-cp ${SUPPORT_DIR}/${LANG}/README.md ${PACKAGES_DIR}/${LANG}/
-cp ${SUPPORT_DIR}/${LANG}/analysis_options.yaml ${PACKAGES_DIR}/${LANG}/
-cp CHANGELOG.md ${PACKAGES_DIR}/${LANG}/
 """
 
 [tasks.dart-copy-tests]
@@ -788,13 +700,11 @@ cp ${SUPPORT_DIR}/${LANG}/test/*.dart ${PACKAGES_DIR}/${LANG}/test/
 [tasks.dart-package-flow]
 private = true
 dependencies = [
-    "dart-clean",
     "bindgen-dart",
     "dart-move-code-into-lib",
     "dart-generate-manifest",
     "dart-copy-hook",
     "dart-copy-lib",
-    "dart-copy-meta",
     "dart-copy-tests"
 ]
 

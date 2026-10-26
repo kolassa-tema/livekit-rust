@@ -161,33 +161,28 @@ impl NativeBuffer {
         }
     }
 
-    #[cfg(any(target_os = "macos", target_os = "ios"))]
-    pub fn get_cv_pixel_buffer(&self) -> *mut std::ffi::c_void {
-        unsafe { vfb_sys::ffi::native_buffer_to_platform_image_buffer(&self.sys_handle) as *mut _ }
-    }
-
-    #[cfg(target_os = "linux")]
-    pub fn from_dmabuf(
-        dmabuf_fd: vf::native::DmaBufFileDescriptor,
-        resolution: crate::video_source::VideoResolution,
-        pixel_format: vf::native::DmaBufPixelFormat,
+    #[cfg(target_os = "android")]
+    pub unsafe fn from_hardware_buffer(
+        hardware_buffer: usize,
+        sync_fd: i32,
+        width: u32,
+        height: u32,
     ) -> vf::native::NativeBuffer {
         vf::native::NativeBuffer {
             handle: NativeBuffer {
-                sys_handle: vfb_sys::ffi::new_native_buffer_from_dmabuf(
-                    dmabuf_fd,
-                    resolution.width as i32,
-                    resolution.height as i32,
-                    pixel_format as i32,
+                sys_handle: vfb_sys::ffi::new_native_buffer_from_hardware_buffer(
+                    hardware_buffer,
+                    sync_fd,
+                    width,
+                    height,
                 ),
             },
         }
     }
 
-    #[cfg(target_os = "linux")]
-    pub fn get_dmabuf_fd(&self) -> Option<vf::native::DmaBufFileDescriptor> {
-        let fd = vfb_sys::ffi::native_buffer_to_dmabuf_fd(&self.sys_handle);
-        (fd >= 0).then_some(fd)
+    #[cfg(any(target_os = "macos", target_os = "ios"))]
+    pub fn get_cv_pixel_buffer(&self) -> *mut std::ffi::c_void {
+        unsafe { vfb_sys::ffi::native_buffer_to_platform_image_buffer(&self.sys_handle) as *mut _ }
     }
 
     pub fn sys_handle(&self) -> &vfb_sys::ffi::VideoFrameBuffer {
@@ -229,26 +224,6 @@ impl I420Buffer {
         vf::I420Buffer {
             handle: I420Buffer {
                 sys_handle: vfb_sys::ffi::new_i420_buffer(
-                    width.try_into().unwrap(),
-                    height.try_into().unwrap(),
-                    stride_y.try_into().unwrap(),
-                    stride_u.try_into().unwrap(),
-                    stride_v.try_into().unwrap(),
-                ),
-            },
-        }
-    }
-
-    pub fn new_black(
-        width: u32,
-        height: u32,
-        stride_y: u32,
-        stride_u: u32,
-        stride_v: u32,
-    ) -> vf::I420Buffer {
-        vf::I420Buffer {
-            handle: I420Buffer {
-                sys_handle: vfb_sys::ffi::new_black_i420_buffer(
                     width.try_into().unwrap(),
                     height.try_into().unwrap(),
                     stride_y.try_into().unwrap(),

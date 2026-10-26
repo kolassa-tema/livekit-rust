@@ -63,7 +63,6 @@ pub mod ffi {
         Nvenc,
         Vaapi,
         VideoToolbox,
-        PreEncoded,
     }
 
     unsafe extern "C++" {

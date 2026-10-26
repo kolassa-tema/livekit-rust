@@ -88,7 +88,6 @@ impl From<ParticipantKindDetail> for proto::ParticipantKindDetail {
             }
             ParticipantKindDetail::ConnectorTwilio => proto::ParticipantKindDetail::ConnectorTwilio,
             ParticipantKindDetail::BridgeRtsp => proto::ParticipantKindDetail::BridgeRtsp,
-            ParticipantKindDetail::Simulation => proto::ParticipantKindDetail::Simulation,
         }
     }
 }

@@ -15,8 +15,7 @@
 use livekit_protocol as proto;
 
 use super::{ServiceBase, ServiceResult, LIVEKIT_PACKAGE};
-use crate::services::twirp_client::TwirpClient;
-use livekit_token::{get_env_keys, VideoGrants};
+use crate::{access_token::VideoGrants, get_env_keys, services::twirp_client::TwirpClient};
 
 #[derive(Clone, Copy, Debug, Default)]
 pub enum AudioMixing {
@@ -311,25 +310,6 @@ impl EgressClient {
                     track_id: track_id.to_string(),
                     ..Default::default()
                 },
-                self.base
-                    .auth_header(VideoGrants { room_record: true, ..Default::default() }, None)?,
-            )
-            .await
-            .map_err(Into::into)
-    }
-
-    /// Starts an egress using the unified v2 [`StartEgressRequest`](proto::StartEgressRequest),
-    /// which supersedes the per-source `start_*_egress` helpers. Calls the
-    /// `Egress.StartEgress` RPC and returns the created [`EgressInfo`](proto::EgressInfo).
-    pub async fn start_egress(
-        &self,
-        request: proto::StartEgressRequest,
-    ) -> ServiceResult<proto::EgressInfo> {
-        self.client
-            .request(
-                SVC,
-                "StartEgress",
-                request,
                 self.base
                     .auth_header(VideoGrants { room_record: true, ..Default::default() }, None)?,
             )

@@ -133,6 +133,9 @@ enum VideoBufferType {
   I444 = 8;
   I010 = 9;
   NV12 = 10;
+  // Android only: data_ptr is an AHardwareBuffer*, sync_fd an optional fence the GPU
+  // producer exported. The frame is handed to the hardware encoder as a GL texture.
+  NATIVE_ANDROID_AHB = 11;
 }
 
 message VideoBufferInfo {
@@ -147,6 +150,7 @@ message VideoBufferInfo {
   required uint64 data_ptr = 4;
   optional uint32 stride = 6; // only for packed formats
   repeated ComponentInfo components = 7;
+  optional int32 sync_fd = 8; // NATIVE_ANDROID_AHB only, -1 or absent for none
 }
 
 message OwnedVideoBuffer {

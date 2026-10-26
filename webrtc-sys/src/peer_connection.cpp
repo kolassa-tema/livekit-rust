@@ -55,8 +55,6 @@ webrtc::PeerConnectionInterface::RTCConfiguration to_native_rtc_configuration(
       static_cast<webrtc::PeerConnectionInterface::IceTransportsType>(
           config.ice_transport_type);
 
-  rtc_config.enable_sctp_snap = config.enable_sctp_snap;
-
   return rtc_config;
 }
 
@@ -170,10 +168,9 @@ void PeerConnection::add_ice_candidate(
     std::shared_ptr<IceCandidate> candidate,
     rust::Box<PeerContext> ctx,
     rust::Fn<void(rust::Box<PeerContext>, RtcError)> on_complete) const {
-  auto owned_ctx = std::make_shared<rust::Box<PeerContext>>(std::move(ctx));
   peer_connection_->AddIceCandidate(
-      candidate->release(), [owned_ctx, on_complete](const webrtc::RTCError& err) {
-        on_complete(std::move(*owned_ctx), to_error(err));
+      candidate->release(), [&](const webrtc::RTCError& err) {
+        on_complete(std::move(ctx), to_error(err));
       });
 }
 

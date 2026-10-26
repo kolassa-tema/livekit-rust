@@ -29,6 +29,25 @@ pub unsafe fn to_libwebrtc_buffer(info: proto::VideoBufferInfo) -> BoxVideoBuffe
         proto::VideoBufferType::Argb => cvtimpl::cvt_argb_to_i420_buffer(info, false),
         proto::VideoBufferType::Bgra => cvtimpl::cvt_bgra_to_i420_buffer(info, false),
         proto::VideoBufferType::Rgb24 => cvtimpl::cvt_rgb24_to_i420_buffer(info, false),
+        proto::VideoBufferType::NativeAndroidAhb => {
+            #[cfg(target_os = "android")]
+            {
+                let sync_fd = info.sync_fd.unwrap_or(-1);
+                Box::new(unsafe {
+                    livekit::webrtc::video_frame::native::NativeBuffer::from_hardware_buffer(
+                        info.data_ptr as usize,
+                        sync_fd,
+                        width,
+                        height,
+                    )
+                }) as BoxVideoBuffer
+            }
+            #[cfg(not(target_os = "android"))]
+            {
+                log::error!("NATIVE_ANDROID_AHB frames are only supported on Android; sending black");
+                Box::new(I420Buffer::new(width, height)) as BoxVideoBuffer
+            }
+        }
         proto::VideoBufferType::I420 | proto::VideoBufferType::I420a => {
             let (c0, c1, c2) = (&components[0], &components[1], &components[2]);
 
@@ -299,6 +318,7 @@ pub fn i420_info(
         components,
         data_ptr: data_ptr as u64,
         stride: None,
+        sync_fd: None,
     }
 }
 
@@ -350,6 +370,7 @@ pub fn i420a_info(
         components,
         data_ptr: data_ptr as u64,
         stride: None,
+        sync_fd: None,
     }
 }
 
@@ -391,6 +412,7 @@ pub fn i422_info(
         components,
         data_ptr: data_ptr as u64,
         stride: None,
+        sync_fd: None,
     }
 }
 
@@ -432,6 +454,7 @@ pub fn i444_info(
         components,
         data_ptr: data_ptr as u64,
         stride: None,
+        sync_fd: None,
     }
 }
 
@@ -475,6 +498,7 @@ pub fn i010_info(
         components,
         data_ptr: data_ptr as u64,
         stride: None,
+        sync_fd: None,
     }
 }
 
@@ -510,6 +534,7 @@ pub fn nv12_info(
         components,
         data_ptr: data_ptr as u64,
         stride: None,
+        sync_fd: None,
     }
 }
 
@@ -526,6 +551,7 @@ pub fn rgba_info(
         components: Vec::default(),
         data_ptr: data_ptr as u64,
         stride: Some(width * 4),
+        sync_fd: None,
     }
 }
 
@@ -542,5 +568,6 @@ pub fn rgb_info(
         components: Vec::default(),
         data_ptr: data_ptr as u64,
         stride: Some(width * 3),
+        sync_fd: None,
     }
 }

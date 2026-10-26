@@ -17,7 +17,6 @@
 #include "livekit/video_frame_buffer.h"
 
 #include "api/make_ref_counted.h"
-#include "livekit/dmabuf_video_frame_buffer.h"
 
 namespace livekit_ffi {
 
@@ -309,21 +308,6 @@ std::unique_ptr<I420Buffer> new_i420_buffer(int width,
       webrtc::I420Buffer::Create(width, height, stride_y, stride_u, stride_v));
 }
 
-std::unique_ptr<I420Buffer> new_black_i420_buffer(int width,
-                                                  int height,
-                                                  int stride_y,
-                                                  int stride_u,
-                                                  int stride_v) {
-  // I420Buffer::Create does not initialize the pixel data. Callers that may
-  // hand the buffer to the encoder before writing every plane (e.g. the
-  // pre-capture keepalive frames NativeVideoSource emits) must start from a
-  // real black frame, or they would send recycled heap memory to subscribers.
-  webrtc::scoped_refptr<webrtc::I420Buffer> buffer =
-      webrtc::I420Buffer::Create(width, height, stride_y, stride_u, stride_v);
-  webrtc::I420Buffer::SetBlack(buffer.get());
-  return std::make_unique<I420Buffer>(std::move(buffer));
-}
-
 std::unique_ptr<I422Buffer> new_i422_buffer(int width,
                                             int height,
                                             int stride_y,
@@ -359,24 +343,6 @@ std::unique_ptr<NV12Buffer> new_nv12_buffer(int width,
       webrtc::NV12Buffer::Create(width, height, stride_y, stride_uv));
 }
 
-std::unique_ptr<VideoFrameBuffer> new_native_buffer_from_dmabuf(
-    int dmabuf_fd,
-    int width,
-    int height,
-    int pixel_format) {
-  return std::make_unique<VideoFrameBuffer>(
-      webrtc::make_ref_counted<livekit::DmaBufVideoFrameBuffer>(
-          dmabuf_fd, width, height,
-          static_cast<livekit::DmaBufPixelFormat>(pixel_format)));
-}
-
-int native_buffer_to_dmabuf_fd(
-    const std::unique_ptr<VideoFrameBuffer>& buffer) {
-  auto* dmabuf =
-      livekit::DmaBufVideoFrameBuffer::FromNative(buffer->get().get());
-  return dmabuf ? dmabuf->dmabuf_fd() : -1;
-}
-
 #ifndef __APPLE__
 
 std::unique_ptr<VideoFrameBuffer> new_native_buffer_from_platform_image_buffer(
@@ -388,6 +354,17 @@ std::unique_ptr<VideoFrameBuffer> new_native_buffer_from_platform_image_buffer(
 PlatformImageBuffer* native_buffer_to_platform_image_buffer(
     const std::unique_ptr<VideoFrameBuffer> &buffer
 ) {
+  return nullptr;
+}
+
+#endif
+
+#ifndef __ANDROID__
+
+std::unique_ptr<VideoFrameBuffer> new_native_buffer_from_hardware_buffer(size_t hardware_buffer,
+                                                                        int32_t sync_fd,
+                                                                        uint32_t width,
+                                                                        uint32_t height) {
   return nullptr;
 }
 

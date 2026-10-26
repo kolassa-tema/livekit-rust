@@ -62,24 +62,6 @@
 ### Changed
 
 - Update protocol version to v1.31.0
-## 0.7.13 (2026-09-08)
-
-### Features
-
-- Add the `PASSTHROUGH` encoding preset and remove the unused `UpdateEgressRequest` from the generated protocol
-
-## 0.7.12 (2026-07-29)
-
-### Fixes
-
-- Add data streams v2 - #1192 (@1egoman)
-
-## 0.7.11 (2026-07-27)
-
-### Fixes
-
-- Data tracks schema metadata support.
-
 ## 0.7.10 (2026-06-30)
 
 ### Features

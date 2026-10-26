@@ -76,42 +76,6 @@ versioned_files = [
 changelog = "livekit-api/CHANGELOG.md"
 scopes = ["livekit-api"]
 
-[packages.livekit-net]
-versioned_files = [
-  "livekit-net/Cargo.toml",
-  "Cargo.lock",
-  { path = "Cargo.toml", dependency = "livekit-net" },
-]
-changelog = "livekit-net/CHANGELOG.md"
-scopes = ["livekit-net"]
-
-[packages.livekit-token]
-versioned_files = [
-  "livekit-token/Cargo.toml",
-  "Cargo.lock",
-  { path = "Cargo.toml", dependency = "livekit-token" },
-]
-changelog = "livekit-token/CHANGELOG.md"
-scopes = ["livekit-token"]
-
-[packages.livekit-region]
-versioned_files = [
-  "livekit-region/Cargo.toml",
-  "Cargo.lock",
-  { path = "Cargo.toml", dependency = "livekit-region" },
-]
-changelog = "livekit-region/CHANGELOG.md"
-scopes = ["livekit-region"]
-
-[packages.livekit-signaling]
-versioned_files = [
-  "livekit-signaling/Cargo.toml",
-  "Cargo.lock",
-  { path = "Cargo.toml", dependency = "livekit-signaling" },
-]
-changelog = "livekit-signaling/CHANGELOG.md"
-scopes = ["livekit-signaling"]
-
 [packages.libwebrtc]
 versioned_files = [
   "libwebrtc/Cargo.toml",
@@ -155,11 +119,10 @@ versioned_files = [
   "Cargo.lock",
 ]
 changelog = "livekit-uniffi/CHANGELOG.md"
-# No `assets` marker: knope publishes the release + tag directly, and
-# uniffi-packages.yml reacts to the published release to build/publish the Swift
-# and Android wrapper packages. The Dart/Flutter cdylibs are attached to the
-# already-published release by its cdylib job (gh release upload --clobber), so
-# the marker stays off; a draft-based flow stranded releases before (#1256).
+# Asset marker tells knope to create a draft release; uniffi-packages.yml
+# picks it up, builds the Swift xcframework, and publishes via PR + draft
+# release on livekit/livekit-uniffi-xcframework.
+assets = "marker"
 scopes = ["uniffi", "livekit-uniffi"]
 
 [packages.livekit-wakeword]
@@ -178,30 +141,6 @@ versioned_files = [
 ]
 changelog = "livekit-datatrack/CHANGELOG.md"
 
-[packages.livekit-common]
-versioned_files = [
-  "livekit-common/Cargo.toml",
-  "Cargo.lock",
-  { path = "Cargo.toml", dependency = "livekit-common" },
-]
-changelog = "livekit-common/CHANGELOG.md"
-
-[packages.livekit-data-stream]
-versioned_files = [
-  "livekit-data-stream/Cargo.toml",
-  "Cargo.lock",
-  { path = "Cargo.toml", dependency = "livekit-data-stream" },
-]
-changelog = "livekit-data-stream/CHANGELOG.md"
-
-[packages.livekit-rpc]
-versioned_files = [
-  "livekit-rpc/Cargo.toml",
-  "Cargo.lock",
-  { path = "Cargo.toml", dependency = "livekit-rpc" },
-]
-changelog = "livekit-rpc/CHANGELOG.md"
-
 [packages.device-info]
 versioned_files = [
   "device-info/Cargo.toml",
@@ -209,11 +148,3 @@ versioned_files = [
   { path = "Cargo.toml", dependency = "device-info" },
 ]
 changelog = "device-info/CHANGELOG.md"
-
-[packages.livekit-token-source]
-versioned_files = [
-  "livekit-token-source/Cargo.toml",
-  "Cargo.lock",
-  { path = "Cargo.toml", dependency = "livekit-token-source" },
-]
-changelog = "livekit-token-source/CHANGELOG.md"

@@ -15,6 +15,7 @@
  */
 
 #include "livekit/android.h"
+#include "livekit/android_ahb.h"
 
 #include <atomic>
 #include <jni.h>
@@ -127,8 +128,13 @@ CreateAndroidVideoEncoderFactory() {
   jmethodID ctor = env->GetMethodID(factory_class.obj(), "<init>",
                                     "(Llivekit/org/webrtc/EglBase$Context;ZZ)V");
 
+  // With a shared EGL context the hardware encoders take texture frames and draw them into
+  // the codec surface themselves (HardwareVideoEncoder.canUseSurface). Without the helper
+  // jar this stays null and frames go through the byte-buffer path as before.
+  jobject shared_context = GetAhbSharedEglContext(env);
   jobject encoder_factory =
-      env->NewObject(factory_class.obj(), ctor, nullptr, true, false);
+      env->NewObject(factory_class.obj(), ctor, shared_context, true, false);
+  if (shared_context) env->DeleteLocalRef(shared_context);
 
   return webrtc::JavaToNativeVideoEncoderFactory(env, encoder_factory);
 }

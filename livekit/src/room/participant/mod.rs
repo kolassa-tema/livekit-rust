@@ -62,7 +62,6 @@ pub enum ParticipantKindDetail {
     ConnectorWhatsapp,
     ConnectorTwilio,
     BridgeRtsp,
-    Simulation,
 }
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
@@ -85,8 +84,6 @@ pub enum DisconnectReason {
     MediaFailure,
     AgentError,
 }
-
-pub use livekit_common::ClientCapability;
 
 #[derive(Debug, Clone)]
 pub enum Participant {
@@ -149,7 +146,6 @@ struct ParticipantInfo {
     pub joined_at: i64,
     pub permission: Option<proto::ParticipantPermission>,
     pub client_protocol: i32,
-    pub capabilities: Vec<ClientCapability>,
 }
 
 type TrackMutedHandler = Box<dyn Fn(Participant, TrackPublication) + Send>;
@@ -201,7 +197,6 @@ pub(super) fn new_inner(
     joined_at: i64,
     permission: Option<proto::ParticipantPermission>,
     client_protocol: i32,
-    capabilities: Vec<ClientCapability>,
 ) -> Arc<ParticipantInner> {
     Arc::new(ParticipantInner {
         rtc_engine,
@@ -221,7 +216,6 @@ pub(super) fn new_inner(
             joined_at,
             permission,
             client_protocol,
-            capabilities,
         }),
         track_publications: Default::default(),
         events: Default::default(),
@@ -275,8 +269,6 @@ pub(super) fn update_info(
     }
 
     info.client_protocol = new_info.client_protocol;
-    info.capabilities =
-        new_info.capabilities.iter().filter_map(|&c| ClientCapability::try_from(c).ok()).collect();
 }
 
 pub(super) fn set_speaking(
@@ -456,7 +448,7 @@ pub(super) fn add_publication(
                 if !publication.is_remote() {
                     let rtc_engine = rtc_engine.clone();
                     let publication_cloned = publication.clone();
-                    tokio::spawn(async move {
+                    livekit_runtime::spawn(async move {
                         let engine_request = rtc_engine
                             .mute_track(proto::MuteTrackRequest {
                                 sid: publication_cloned.sid().to_string(),
@@ -482,7 +474,7 @@ pub(super) fn add_publication(
                 if !publication.is_remote() {
                     let rtc_engine = rtc_engine.clone();
                     let publication_cloned = publication.clone();
-                    tokio::spawn(async move {
+                    livekit_runtime::spawn(async move {
                         let engine_request = rtc_engine
                             .mute_track(proto::MuteTrackRequest {
                                 sid: publication_cloned.sid().to_string(),

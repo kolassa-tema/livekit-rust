@@ -268,13 +268,6 @@ export declare class TextStreamReaderEOS extends Message<TextStreamReaderEOS> {
    */
   error?: StreamError;
 
-  /**
-   * Final stream attributes, including any delivered in the stream trailer.
-   *
-   * @generated from field: map<string, string> attributes = 2;
-   */
-  attributes: { [key: string]: string };
-
   constructor(data?: PartialMessage<TextStreamReaderEOS>);
 
   static readonly runtime: typeof proto2;
@@ -650,13 +643,6 @@ export declare class ByteStreamReaderEOS extends Message<ByteStreamReaderEOS> {
    * @generated from field: optional livekit.proto.StreamError error = 1;
    */
   error?: StreamError;
-
-  /**
-   * Final stream attributes, including any delivered in the stream trailer.
-   *
-   * @generated from field: map<string, string> attributes = 2;
-   */
-  attributes: { [key: string]: string };
 
   constructor(data?: PartialMessage<ByteStreamReaderEOS>);
 
@@ -1240,13 +1226,6 @@ export declare class ByteStreamWriterCloseRequest extends Message<ByteStreamWrit
    */
   requestAsyncId?: bigint;
 
-  /**
-   * Attributes to attach to the stream trailer.
-   *
-   * @generated from field: map<string, string> attributes = 4;
-   */
-  attributes: { [key: string]: string };
-
   constructor(data?: PartialMessage<ByteStreamWriterCloseRequest>);
 
   static readonly runtime: typeof proto2;
@@ -1558,13 +1537,6 @@ export declare class TextStreamWriterCloseRequest extends Message<TextStreamWrit
    */
   requestAsyncId?: bigint;
 
-  /**
-   * Attributes to attach to the stream trailer.
-   *
-   * @generated from field: map<string, string> attributes = 4;
-   */
-  attributes: { [key: string]: string };
-
   constructor(data?: PartialMessage<TextStreamWriterCloseRequest>);
 
   static readonly runtime: typeof proto2;
@@ -1869,18 +1841,6 @@ export declare class StreamTextOptions extends Message<StreamTextOptions> {
    */
   generated?: boolean;
 
-  /**
-   * @generated from field: optional bool compress = 10;
-   */
-  compress?: boolean;
-
-  /**
-   * Identity the stream's packets are attributed to; requires permission to impersonate.
-   *
-   * @generated from field: optional string sender_identity = 11;
-   */
-  senderIdentity?: string;
-
   constructor(data?: PartialMessage<StreamTextOptions>);
 
   static readonly runtime: typeof proto2;
@@ -1934,18 +1894,6 @@ export declare class StreamByteOptions extends Message<StreamByteOptions> {
    * @generated from field: optional uint64 total_length = 7;
    */
   totalLength?: bigint;
-
-  /**
-   * @generated from field: optional bool compress = 8;
-   */
-  compress?: boolean;
-
-  /**
-   * Identity the stream's packets are attributed to; requires permission to impersonate.
-   *
-   * @generated from field: optional string sender_identity = 9;
-   */
-  senderIdentity?: string;
 
   constructor(data?: PartialMessage<StreamByteOptions>);
 

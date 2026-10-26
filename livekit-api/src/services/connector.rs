@@ -18,8 +18,7 @@ use std::time::Duration;
 
 use super::{ServiceBase, ServiceResult, LIVEKIT_PACKAGE};
 use crate::services::dial_timeout::DEFAULT_RINGING_TIMEOUT;
-use crate::services::twirp_client::TwirpClient;
-use livekit_token::{get_env_keys, VideoGrants};
+use crate::{access_token::VideoGrants, get_env_keys, services::twirp_client::TwirpClient};
 
 const SVC: &str = "Connector";
 
@@ -266,7 +265,6 @@ impl ConnectorClient {
                 proto::ConnectWhatsAppCallRequest {
                     whatsapp_call_id: call_id.into(),
                     sdp: Some(sdp),
-                    ..Default::default()
                 },
                 self.base
                     .auth_header(VideoGrants { room_create: true, ..Default::default() }, None)?,

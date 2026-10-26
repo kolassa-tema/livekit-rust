@@ -777,19 +777,6 @@ const RtcConfig = /*@__PURE__*/ proto2.makeMessageType(
 );
 
 /**
- * Options controlling data stream behavior for the room.
- *
- * @generated from message livekit.proto.RoomDataStreamOptions
- */
-const RoomDataStreamOptions = /*@__PURE__*/ proto2.makeMessageType(
-  "livekit.proto.RoomDataStreamOptions",
-  () => [
-    { no: 1, name: "max_payload_byte_length", kind: "scalar", T: 4 /* ScalarType.UINT64 */, opt: true },
-    { no: 2, name: "use_legacy_client_implementation", kind: "scalar", T: 8 /* ScalarType.BOOL */, opt: true },
-  ],
-);
-
-/**
  * @generated from message livekit.proto.RoomOptions
  */
 const RoomOptions = /*@__PURE__*/ proto2.makeMessageType(
@@ -804,8 +791,6 @@ const RoomOptions = /*@__PURE__*/ proto2.makeMessageType(
     { no: 7, name: "encryption", kind: "message", T: E2eeOptions, opt: true },
     { no: 8, name: "single_peer_connection", kind: "scalar", T: 8 /* ScalarType.BOOL */, opt: true },
     { no: 9, name: "connect_timeout_ms", kind: "scalar", T: 4 /* ScalarType.UINT64 */, opt: true },
-    { no: 10, name: "data_stream", kind: "message", T: RoomDataStreamOptions, opt: true },
-    { no: 11, name: "other_sdks", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
   ],
 );
 
@@ -1725,7 +1710,6 @@ exports.AudioEncoding = AudioEncoding;
 exports.TrackPublishOptions = TrackPublishOptions;
 exports.IceServer = IceServer;
 exports.RtcConfig = RtcConfig;
-exports.RoomDataStreamOptions = RoomDataStreamOptions;
 exports.RoomOptions = RoomOptions;
 exports.TranscriptionSegment = TranscriptionSegment;
 exports.BufferInfo = BufferInfo;

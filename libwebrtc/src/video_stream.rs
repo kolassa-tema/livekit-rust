@@ -30,7 +30,7 @@ pub mod native {
         native::packet_trailer::PacketTrailerHandler, video_frame::BoxVideoFrame,
         video_track::RtcVideoTrack,
     };
-    use tokio_stream::Stream;
+    use livekit_runtime::Stream;
 
     const DEFAULT_QUEUE_SIZE_FRAMES: usize = 1;
 

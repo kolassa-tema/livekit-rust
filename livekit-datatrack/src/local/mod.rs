@@ -13,8 +13,7 @@
 // limitations under the License.
 
 use crate::{
-    api::{DataTrack, DataTrackFrame, DataTrackInfo, DataTrackSchemaError, InternalError},
-    schema::{DataTrackFrameEncoding, DataTrackSchemaId},
+    api::{DataTrack, DataTrackFrame, DataTrackInfo, InternalError},
     track::DataTrackInner,
 };
 use std::{fmt, marker::PhantomData, sync::Arc};
@@ -154,8 +153,6 @@ impl Drop for LocalTrackInner {
 #[derive(Clone, Debug)]
 pub struct DataTrackOptions {
     pub(crate) name: String,
-    pub(crate) schema: Option<DataTrackSchemaId>,
-    pub(crate) frame_encoding: Option<DataTrackFrameEncoding>,
 }
 
 impl DataTrackOptions {
@@ -168,17 +165,7 @@ impl DataTrackOptions {
     /// - Must be unique per publisher
     ///
     pub fn new(name: impl Into<String>) -> Self {
-        Self { name: name.into(), schema: None, frame_encoding: None }
-    }
-
-    /// Sets the schema associated with frames sent on the track.
-    pub fn with_schema(self, schema: DataTrackSchemaId) -> Self {
-        Self { schema: Some(schema), ..self }
-    }
-
-    /// Sets the encoding of frames sent on the track.
-    pub fn with_frame_encoding(self, encoding: DataTrackFrameEncoding) -> Self {
-        Self { frame_encoding: Some(encoding), ..self }
+        Self { name: name.into() }
     }
 }
 
@@ -196,8 +183,6 @@ impl From<&str> for DataTrackOptions {
 
 /// An error that can occur when publishing a data track.
 #[derive(Debug, Error)]
-#[cfg_attr(feature = "uniffi", derive(uniffi::Error))]
-#[cfg_attr(feature = "uniffi", uniffi(flat_error))]
 pub enum PublishError {
     /// Local participant does not have permission to publish data tracks.
     ///
@@ -228,10 +213,6 @@ pub enum PublishError {
     /// Cannot publish data track when the room is disconnected.
     #[error("Room disconnected")]
     Disconnected,
-
-    /// Schema metadata is invalid.
-    #[error(transparent)]
-    InvalidSchema(DataTrackSchemaError),
 
     /// Internal error, please report on GitHub.
     #[error(transparent)]
@@ -267,7 +248,6 @@ impl PushFrameError {
 
 /// Reason why a data track frame could not be pushed.
 #[derive(Debug, Clone, Copy)]
-#[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
 pub enum PushFrameErrorReason {
     /// Track is no longer published.
     TrackUnpublished,

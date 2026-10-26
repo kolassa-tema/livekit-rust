@@ -12,15 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! Re-exports of the [`livekit_rpc`] public API, keeping existing imports from
-//! `room::participant::*` working.
-//!
-//! This module has no callers inside this crate — code within `livekit` imports from
-//! `livekit_rpc` directly, and the production transport lives in `livekit`'s private `room::rpc_transport` module.
-
-pub use livekit_rpc::api::*;
-
-// Historically public here, but not usable without a transport, which is internal. Kept
-// reachable so existing code compiles, hidden from the docs.
-#[doc(hidden)]
-pub use livekit_rpc::backend::{HandleRequestOptions, RpcClientManager, RpcServerManager};
+// Re-export all RPC types from the room::rpc module.
+// This keeps existing imports from `room::participant::*` working.
+pub use crate::room::rpc::*;

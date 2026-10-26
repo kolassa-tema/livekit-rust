@@ -1,41 +1,4 @@
 # Changelog
-## 0.1.15 (2026-09-08)
-
-### Features
-
-- Removes livekit-runtime and converts this package to be tokio only again - #1375 (@1egoman)
-
-### Fixes
-
-- Add data streams v2 to exposed uniffi interface - #1286 (@1egoman)
-- Add the `PASSTHROUGH` encoding preset and remove the unused `UpdateEgressRequest` from the generated protocol
-
-## 0.1.14 (2026-08-25)
-
-### Fixes
-
-- Register the `Bytes` UniFFI custom type once in `livekit-common` and borrow it from each component with `uniffi::use_remote_type!`, so the converter is emitted once and the post-generation Swift workaround is no longer needed
-
-## 0.1.13 (2026-07-29)
-
-### Fixes
-
-- Add data streams v2 - #1192 (@1egoman)
-
-## 0.1.12 (2026-07-27)
-
-### Features
-
-- Data tracks schema metadata support.
-
-## 0.1.11 (2026-07-14)
-
-### Fixes
-
-- Make some fields public for data track types
-- Refactor data tracks E2EE interface
-- Use concrete type for data track manager output events
-
 ## 0.1.10 (2026-07-09)
 
 ### Fixes

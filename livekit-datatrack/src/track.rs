@@ -12,10 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::{
-    packet::Handle,
-    schema::{DataTrackFrameEncoding, DataTrackSchemaId},
-};
+use crate::packet::Handle;
 use from_variants::FromVariants;
 use std::{
     fmt::Display,
@@ -45,7 +42,7 @@ impl<L> DataTrack<L> {
         &self.info
     }
 
-    /// Whether or not the track is currently published.
+    /// Whether or not the track is still published.
     pub fn is_published(&self) -> bool {
         match self.inner.as_ref() {
             DataTrackInner::Local(inner) => inner.is_published(),
@@ -74,8 +71,6 @@ pub struct DataTrackInfo {
     pub(crate) pub_handle: Handle,
     pub(crate) name: String,
     pub(crate) uses_e2ee: bool,
-    pub(crate) schema: Option<DataTrackSchemaId>,
-    pub(crate) frame_encoding: Option<DataTrackFrameEncoding>,
 }
 
 impl DataTrackInfo {
@@ -96,24 +91,6 @@ impl DataTrackInfo {
     /// Whether or not frames sent on the track use end-to-end encryption.
     pub fn uses_e2ee(&self) -> bool {
         self.uses_e2ee
-    }
-
-    /// Schema associated with frames sent on the track.
-    ///
-    /// Returns `None` if the publisher did not associate a
-    /// [`DataTrackSchemaId`] with the track.
-    ///
-    pub fn schema(&self) -> Option<&DataTrackSchemaId> {
-        self.schema.as_ref()
-    }
-
-    /// Encoding of frames sent on the track.
-    ///
-    /// Returns `None` if the publisher did not specify a
-    /// [`DataTrackFrameEncoding`] for the track.
-    ///
-    pub fn frame_encoding(&self) -> Option<&DataTrackFrameEncoding> {
-        self.frame_encoding.as_ref()
     }
 }
 
